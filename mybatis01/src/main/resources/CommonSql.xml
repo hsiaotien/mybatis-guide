@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <!-- namespace: 指定当前mapper文件的唯一标识 -->
+<mapper namespace="CommonSQL">
+	<!-- sql片段 -->
+	<sql id="commonSql">
+		id,
+		user_name,
+		password,
+		name,
+		age,
+		sex,
+		birthday,
+		created,
+		updated
+	</sql>
+</mapper>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace: 指定当前mapper文件的唯一标识 -->
+<mapper namespace="com.dev.mapper.OrderMapper">
+
+
+	<!-- 自定义映射 -->
+	<resultMap type="Order" id="orderUserMap" autoMapping="true">
+		<id column="id" property="id" />
+
+
+		<!-- 一对一 的映射封装 -->
+		<association property="user" javaType="User" autoMapping="true">
+			<id column="user_id" property="id" />
+		</association>
+	</resultMap>
+
+
+	<!-- 根据订单查询订单人信息 -->
+	<select id="selectOrderUserByOrderNumber" resultMap="orderUserMap">
+		SELECT
+		*
+		FROM
+		tb_order o
+		INNER JOIN tb_user u ON o.user_id = u.id
+		WHERE
+		o.order_number = #{orderNumber};
+	</select>
+
+
+	<resultMap type="Order" id="orderUserDetailMap" autoMapping="true" extends="orderUserMap">
+		<id column="id" property="id" />
+		<!-- 一对多 的映射封装 -->
+		<collection property="orderdetailList" javaType="List" ofType="OrderDetail" autoMapping="true">
+			<id property="id" column="detail_id"/>
+		</collection>
+	</resultMap>
+
+	<!-- 根据订单号查询订单信息以及对应的下单人信息和订单详情信息 -->
+	<select id="selectOrderUserDetailByOrderNumber" resultMap="orderUserDetailMap">
+		SELECT
+		*, od.id as detail_id
+		FROM
+		tb_order o
+		LEFT JOIN tb_user u ON o.user_id = u.id
+		LEFT JOIN tb_orderdetail od on
+		od.order_id = o.id
+		WHERE
+		o.order_number = #{orderNumber};
+	</select>
+	
+	
+	
+	
+	<resultMap type="Order" id="orderUserDetailItemMap" autoMapping="true">
+		<id column="id" property="id" />
+
+
+		<!-- 一对一 的映射封装 -->
+		<association property="user" javaType="User" autoMapping="true">
+			<id column="user_id" property="id" />
+		</association>
+		
+		<!-- 一对多 的映射封装 -->
+		<collection property="orderdetailList" javaType="List" ofType="OrderDetail" autoMapping="true">
+			<id property="id" column="detail_id"/>
+			
+			<association property="item" javaType="item" autoMapping="true">
+				<id property="id" column="item_id"/>
+			</association>
+			
+		</collection>
+	</resultMap>
+	
+	<!-- 根据订单号查询订单信息以及对应的下单人信息和订单详情信息和订单详情对应的商品信息 -->
+	<select id="selectOrderUserDetailItemByOrderNumber" resultMap="orderUserDetailItemMap">
+	SELECT
+	*, od.id as detail_id
+	FROM
+	tb_order o
+
+	LEFT JOIN tb_user u ON o.user_id = u.id
+	LEFT JOIN tb_orderdetail od on od.order_id = o.id
+	LEFT JOIN tb_item i on od.item_id = i.id
+	WHERE
+	o.order_number = #{orderNumber};
+	</select>
+
+	<resultMap type="Order" id="orderLazyMap">
+		<id column="id" property="id"/>
+		<association property="user" select="queryUserById" column="user_id" />
+	</resultMap>
+	
+	
+	
+	<select id="queryOrderLazy" resultMap="orderLazyMap">
+		select * from tb_order where order_number = #{orderNumber}
+	</select>
+	
+	<select id="queryUserById" resultType="User">
+		select * from tb_user where id = #{id}
+	</select>
+
+</mapper>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+
+	<!-- 引入外部配置文件 -->
+	<!-- resource : 相对路径 -->
+	<!-- url 绝对路径(不推荐) -->
+	<properties resource="jdbc.properties"></properties>
+
+
+	<settings>
+		<!-- 开启驼峰命名匹配 -->
+		<setting name="mapUnderscoreToCamelCase" value="true" />
+		
+		<!-- 开启延迟加载 -->
+		<setting name="lazyLoadingEnabled" value="true"/>
+		<!-- 开启按需加载 -->
+		<setting name="aggressiveLazyLoading" value="false"/>
+	</settings>
+
+
+	<typeAliases>
+		<!-- 方式一: type -->
+		<!-- <typeAlias type="com.dev.pojo.User" alias="User"/> -->
+		<!-- 扫描包下的类,以类名作为别名,大小写不敏感 -->
+		<package name="com.dev.pojo" />
+	</typeAliases>
+
+	<!-- default: 默认使用的环境配置,通过id指定 -->
+	<environments default="development">
+		<!-- 环境配置的唯一标识 -->
+		<environment id="development">
+			<!-- 事物管理器的类型为JDBC -->
+			<transactionManager type="JDBC" />
+			<!-- 连接池技术 -->
+			<dataSource type="POOLED">
+				<property name="driver" value="${driver}" />
+				<property name="url" value="${url}" />
+				<property name="username" value="${username}" />
+				<property name="password" value="${password}" />
+			</dataSource>
+		</environment>
+
+		<!-- 环境配置的唯一标识 -->
+		<environment id="test">
+			<!-- 事物管理器的类型为JDBC -->
+			<transactionManager type="JDBC" />
+			<!-- 连接池技术 -->
+			<dataSource type="POOLED">
+				<property name="driver" value="${driver}" />
+				<property name="url" value="${url}" />
+				<property name="username" value="${username}" />
+				<property name="password" value="${password}" />
+			</dataSource>
+		</environment>
+	</environments>
+	<mappers>
+		<!--方式一: resource:相对路径 -->
+		<mapper resource="UserDaoMapper.xml" />
+		<mapper resource="CommonSql.xml" />
+		<mapper resource="UserMapper.xml" />
+		<mapper resource="OrderMapper.xml" />
+		<!-- 方式二 url -->
+		<!-- <mapper url=""/> -->
+		<!-- 方式三class:接口全路径,前提是配置文件需要和接口处于同一包下 -->
+		<!-- <mapper class="com.dev.mapper.UserMapper"/> -->
+		<!-- 方式四 :基于方式三的配置,填入接口对应的包路径-->
+		<!-- <package name="com.dev.mapper"/> -->
+	</mappers>
+
+
+
+
+</configuration>
