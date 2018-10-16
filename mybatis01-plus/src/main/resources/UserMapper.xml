@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dev.mapper.UserMapper">
+  <select id="queryUserById" resultMap="UserMap">
+    select * from tb_user where id = #{id}
+  </select>
+  <select id="queryUserAll" resultMap="UserMap">
+  	select <include refid="CommonSQL.commonSql"></include> from tb_user
+  </select>
+  <!-- 用resultMap解决pojo属性和表字段不一致的问题 -->
+	<resultMap id="UserMap" type="User" autoMapping="true" >
+		<id column="id" property="id" />
+		<result column="user_name" property="userName" />
+	</resultMap>
+	<sql id="commonSql">
+		user_name,
+			password,
+			name,
+			age,
+			sex,
+			birthday,
+			created,
+			updated
+	</sql>
+	
+	<insert id="insertUser" parameterType="com.dev.pojo.User">
+		INSERT INTO tb_user (
+			<include refid="commonSql"></include>
+		)
+		VALUES
+			(
+				#{userName},
+				#{password},
+				#{name},
+				#{age},
+				#{sex},
+				#{birthday},
+				NOW(),
+				NOW()
+			);
+	</insert>
+	
+	<update id="updateUser" parameterType="com.dev.pojo.User">
+		UPDATE tb_user
+		SET
+		 user_name = #{userName},
+		 password = #{password},
+		 name = #{name},
+		 age = #{age},
+		 sex = #{sex},
+		 birthday = #{birthday},
+		 updated = NOW()
+		WHERE
+			(id = #{id});
+	</update>
+	
+	<delete id="deleteUserById" parameterType="java.lang.Long">
+		delete from tb_user where id=#{id}
+	</delete>
+	
+	<select id="queryUserAllByTable" parameterType="java.lang.String"
+			resultType="com.dev.pojo.User">
+		select * from ${value}
+	</select>
+	<select id="queryUserByTable" parameterType="java.lang.String" resultType="User">
+		select * from ${tableName}
+	</select>
+	<!-- paramterType的三种形式 -->
+	<select id="loginByUsernameAndPassword" parameterType="java.lang.String"
+			resultType="User">
+		select * from tb_user where user_name=#{userName} and password=#{password}
+	</select>
+	<select id="loginByHashMap" resultType="User">
+		select * from tb_user where user_name=#{username} and password=#{password}
+	</select>
+	<select id="loginByPojo" resultType="User">
+		select * from tb_user where user_name=#{userName} and password=#{password}
+	</select>
+	<!-- 模糊查询 -->
+	<select id="queryUserLike" parameterType="java.lang.String"
+			resultType="User">
+		<!-- 拼接的形式  -->
+		<!-- select * from tb_user where user_name like '%${keyName}%' -->
+		<!-- 或者预编译的形式, 注意这里的特殊性 -->
+		select * from tb_user where user_name like '%' #{keyName} '%'
+	</select>
+	<!-- 查询男性中并模糊查询 -->
+	<select id="queryBoyUserLike" resultType="User">
+		select * from tb_user where user_name like '%' #{keyName} '%' and sex=#{sex}
+	</select>
+	
+	<!-- 5月21日continue -->
+	<select id="selectUserByUserName" resultType="User"
+			parameterType="java.lang.String">
+	<!-- 查询男性用户，如果输入了用户名，按用户名模糊查询 -->
+		SELECT
+			*
+		FROM
+			tb_user
+		WHERE
+			sex = 1
+		<if test="userName != null and userName.trim() != ''">
+		AND user_name LIKE '%' #{userName} '%'
+		</if>
+	</select>
+	<!-- //查询男性用户，如果输入了用户名则按照用户名模糊查找，parameterType="{java.lang.String,java.lang.Integer}"
+	//否则如果输入了年龄则按照年龄查找，否则查找用户名为“zhangsan”的用户。  -->
+	<select id="selectUserByUserNameOrAge" resultType="User"  >
+		select * from tb_user where sex=1
+		<choose>
+			<when test="userName!=null and userName.trim()!=''">
+				and user_name like '%' #{userName} '%'
+			</when>
+			<when test="age!=null">
+				and age=#{age}
+			</when>
+			<otherwise>
+				and name = '张三'
+			</otherwise>
+		</choose>
+	</select>
+	<!-- //查询所有用户，如果输入了用户名按照用户名进行模糊查询，
+	//如果输入年龄，按照年龄进行查询，如果两者都输入，两个条件都要成立。 -->
+	<select id="selectUserByUserNameAndAge" resultType="User"  >
+		select * from tb_user
+		<where>
+			<if test="userName !=null and userName.trim()!=''">
+				and user_name like '%' #{userName} '%'
+			</if>
+			<if test="age!=null">
+				and age=#{age}
+			</if>
+			
+		</where>
+		
+	</select>
+	<!-- where中使用if,可以并行, 尝试where中用choose,应该可以单行 -->
+	<select id="selectUserByWhereAndChoose" resultType="User">
+		select * from tb_user
+		<where>
+			<choose>
+			<when test="userName!=null and userName.trim()!=''">
+				and user_name like '%' #{userName} '%'
+			</when>
+			<when test="age!=null">
+				and age=#{age}
+			</when>
+			<otherwise>
+				and name = '张三'
+			</otherwise>
+			</choose>
+		</where>
+	</select>
+	<!-- set的用法 修改用户信息，如果参数user中的某个属性为null，则不修改。 -->
+	<update id="updateUserByNotNull" >
+		update tb_user
+ 		<set>
+ 			<if test="userName != null"> user_name=#{userName},</if>
+ 			<if test="age!=null">age = #{age}, </if>
+ 			updated=now(),
+ 		</set>
+ 		where id = #{id}
+	</update>
+	<!-- 根据多个id的用户id,选择出用户 -->
+	<select id="selectUserByForeach" resultType="User">
+		select <include refid="CommonSQL.commonSql"></include> from tb_user
+			where id in
+			<foreach collection="ids" item="id" open="(" close=")" separator=",">
+				#{id}
+			</foreach>
+	</select>
+	
+
+</mapper>
